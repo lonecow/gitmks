@@ -60,8 +60,8 @@ done
 
 for patch in `git rev-list HEAD..temp_staged --reverse`; do
 
-   for file in `git diff --name-only --diff-filter "CDRTUXB" $patch~1..$patch`; do
-      echo "Trying to dcommit one of the unsupported types [CDRTUXB]. Canceling dcommit" >&2
+   for file in `git diff --name-only --diff-filter "CRTUXB" $patch~1..$patch`; do
+      echo "Trying to dcommit one of the unsupported types [CRTUXB]. Canceling dcommit" >&2
       git br -D temp_staged &> /dev/null
       cd $CURRENTDIR
       $SCRIPTSLOC/gitmks.sh rebase &> /dev/null
@@ -82,22 +82,10 @@ for patch in `git rev-list HEAD..temp_staged --reverse`; do
 
    patch="`git log --pretty="format:%H" HEAD~..HEAD`"
 
-   for file in `git show --pretty="format:" --name-only $patch`; do
-      if [ ! -e $file ]; then
-         echo "We need to drop a file in this package. This is currently not supported. Canceling dcommit" >&2
-         git br -D temp_staged &> /dev/null
-         git reset HEAD~ --hard &> /dev/null
-         cd $CURRENTDIR
-         $SCRIPTSLOC/gitmks.sh rebase &> /dev/null
-         git remote prune shared
-         exit 255
-      fi
-   done
-
    COMMITMESSAGE="`git log --pretty="format:%s" $patch~1..$patch`"
 
    #make sure that all members are not locked
-   for file in `git diff --name-only --diff-filter "M" $patch~1..$patch`; do
+   for file in `git diff --name-only --diff-filter "DM" $patch~1..$patch`; do
       si memberinfo $file | grep "Locked By:" &> /dev/null
       retval=$?
       if [ $retval != 1 ]; then
@@ -112,7 +100,7 @@ for patch in `git rev-list HEAD..temp_staged --reverse`; do
    done
 
    # lock all of the files
-   for file in `git diff --name-only --diff-filter "M" $patch~1..$patch`; do
+   for file in `git diff --name-only --diff-filter "DM" $patch~1..$patch`; do
       si lock --cpid $PACKAGE $file
       retval=$?
       if [ $retval != 0 ]; then
@@ -132,6 +120,21 @@ for patch in `git rev-list HEAD..temp_staged --reverse`; do
       retval=$?
       if [ $retval != 0 ]; then
          echo "Could not add all files. Canceling dcommit" >&2
+         git br -D temp_staged &> /dev/null
+         git reset HEAD~ --hard &> /dev/null
+         cd $CURRENTDIR
+         $SCRIPTSLOC/gitmks.sh rebase &> /dev/null
+         git remote prune shared
+         exit 255
+      fi
+   done
+
+   #we are going to drop files that were removed
+   for file in `git diff --name-only --diff-filter "D" $patch~1..$patch`; do
+      si drop --nocloseCP --cpid $PACKAGE --description "$COMMITMESSAGE" $file
+      retval=$?
+      if [ $retval != 0 ]; then
+         echo "Could not drop all files. Canceling dcommit" >&2
          git br -D temp_staged &> /dev/null
          git reset HEAD~ --hard &> /dev/null
          cd $CURRENTDIR
