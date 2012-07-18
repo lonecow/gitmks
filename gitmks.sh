@@ -7,6 +7,7 @@ echo "
    Options:"
    $SCRIPTSLOC/gitmks_init.sh usage
    $SCRIPTSLOC/gitmks_info.sh usage
+   $SCRIPTSLOC/gitmks_clean.sh usage
 echo "      update      updates the mks remote for the given repository
       fetch      updates the mks remote for the given repository
       rebase      rebases the mks remote to the currently checked out branch"
@@ -28,6 +29,9 @@ elif [ "$1" == "init" ]; then
    exit $?
 elif [ "$1" == "info" ]; then
    $SCRIPTSLOC/gitmks_info.sh $@
+   exit $?
+elif [ "$1" == "clean" ]; then
+   $SCRIPTSLOC/gitmks_clean.sh $@
    exit $?
 else
    usage $@
