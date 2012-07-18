@@ -28,7 +28,7 @@ echo -e "\n      Please enter your mks user name:\n"
 read USERNAME
 
 PROJECT=$2
-si viewproject --project $PROJECT --no --quiet --user $USER> /dev/null
+si viewproject --project $PROJECT --no --quiet --user $USERNAME &> /dev/null
 retval=$?
 
 if [ $retval != 0 ]; then
@@ -49,7 +49,7 @@ fi
 
 git init
 
-git config --add mks.user $USER
+git config --add mks.user $USERNAME
 
 mkdir .git/mks_remote
 cd .git/mks_remote
@@ -57,7 +57,7 @@ cd .git/mks_remote
 git init
 git co -b MKS
 
-si createsandbox -P $PROJECT --yes --user $USER
+si createsandbox -P $PROJECT --yes --user $USERNAME
 git add -A
 git ci -m 'Initial Import from MKS'
 
