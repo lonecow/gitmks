@@ -27,7 +27,7 @@ fi
 cd $GITDIR/..
 
 echo "Cleaning..."
-for entry in `cat .gitignore`; do
+for entry in `git ls-files --others -i --exclude-standard`; do
    rm -rf $entry
 
    if [ -e $GITDIR/mks_remote/$entry ]; then
