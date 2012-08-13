@@ -59,28 +59,35 @@ while [ "$FOUND" == "FALSE" ]; do
 done
 
 for patch in `git rev-list HEAD..temp_staged --reverse`; do
-
    for file in `git diff --name-only --diff-filter "CRTUXB" $patch~1..$patch`; do
-      echo "Trying to dcommit one of the unsupported types [CRTUXB]. Canceling dcommit" >&2
-      git br -D temp_staged &> /dev/null
-      cd $CURRENTDIR
-      $SCRIPTSLOC/gitmks.sh rebase &> /dev/null
-      git remote prune shared
-      exit 255
-   done
-
-   #make sure that all members are not locked
-   for file in `git diff --name-only --diff-filter "DM" $patch~1..$patch`; do
-      LOCKINFO="`si viewlocks $file`"
-      si viewlocks $file | grep rbitel
-      LOCKED_BY_ME=$?
-      if [ -n "$LOCKINFO" -a "$LOCKED_BY_ME" != "0" ]; then
-         echo "One of the files is already locked. Canceling dcommit" >&2
+      #is file ignored?
+      $SCRIPTSLOC/gitmks_ignore.sh $file .mksignore
+      if [ "$?" == 0 ]; then
+         echo "Trying to dcommit one of the unsupported types [CRTUXB]. Canceling dcommit" >&2
          git br -D temp_staged &> /dev/null
          cd $CURRENTDIR
          $SCRIPTSLOC/gitmks.sh rebase &> /dev/null
          git remote prune shared
          exit 255
+      fi
+   done
+
+   #make sure that all members are not locked
+   for file in `git diff --name-only --diff-filter "DM" $patch~1..$patch`; do
+      #is file ignored?
+      $SCRIPTSLOC/gitmks_ignore.sh $file .mksignore
+      if [ "$?" == 0 ]; then
+         LOCKINFO="`si viewlocks $file`"
+         si viewlocks $file | grep rbitel
+         LOCKED_BY_ME=$?
+         if [ -n "$LOCKINFO" -a "$LOCKED_BY_ME" != "0" ]; then
+            echo "One of the files is already locked. Canceling dcommit" >&2
+            git br -D temp_staged &> /dev/null
+            cd $CURRENTDIR
+            $SCRIPTSLOC/gitmks.sh rebase &> /dev/null
+            git remote prune shared
+            exit 255
+         fi
       fi
    done
 
@@ -101,61 +108,77 @@ for patch in `git rev-list HEAD..temp_staged --reverse`; do
 
    # lock all of the files
    for file in `git diff --name-only --diff-filter "DM" $patch~1..$patch`; do
-      si lock --cpid $PACKAGE $file
-      retval=$?
-      if [ $retval != 0 ]; then
-         echo "Could not Lock all files. Canceling dcommit" >&2
-         git br -D temp_staged &> /dev/null
-         git reset HEAD~ --hard &> /dev/null
-         cd $CURRENTDIR
-         $SCRIPTSLOC/gitmks.sh rebase &> /dev/null
-         git remote prune shared
-         exit 255
+      #is file ignored?
+      $SCRIPTSLOC/gitmks_ignore.sh $file .mksignore
+      if [ "$?" == 0 ]; then
+         si lock --cpid $PACKAGE $file
+         retval=$?
+         if [ $retval != 0 ]; then
+            echo "Could not Lock all files. Canceling dcommit" >&2
+            git br -D temp_staged &> /dev/null
+            git reset HEAD~ --hard &> /dev/null
+            cd $CURRENTDIR
+            $SCRIPTSLOC/gitmks.sh rebase &> /dev/null
+            git remote prune shared
+            exit 255
+         fi
       fi
    done
 
    #we are going to add files that were newly added
    for file in `git diff --name-only --diff-filter "A" $patch~1..$patch`; do
-      si add --nocloseCP --cpid $PACKAGE --description "$COMMITMESSAGE" $file
-      retval=$?
-      if [ $retval != 0 ]; then
-         echo "Could not add all files. Canceling dcommit" >&2
-         git br -D temp_staged &> /dev/null
-         git reset HEAD~ --hard &> /dev/null
-         cd $CURRENTDIR
-         $SCRIPTSLOC/gitmks.sh rebase &> /dev/null
-         git remote prune shared
-         exit 255
+      #is file ignored?
+      $SCRIPTSLOC/gitmks_ignore.sh $file .mksignore
+      if [ "$?" == 0 ]; then
+         si add --nocloseCP --cpid $PACKAGE --description "$COMMITMESSAGE" $file
+         retval=$?
+         if [ $retval != 0 ]; then
+            echo "Could not add all files. Canceling dcommit" >&2
+            git br -D temp_staged &> /dev/null
+            git reset HEAD~ --hard &> /dev/null
+            cd $CURRENTDIR
+            $SCRIPTSLOC/gitmks.sh rebase &> /dev/null
+            git remote prune shared
+            exit 255
+         fi
       fi
    done
 
    #we are going to drop files that were removed
    for file in `git diff --name-only --diff-filter "D" $patch~1..$patch`; do
-      si drop --nocloseCP --cpid $PACKAGE --description "$COMMITMESSAGE" $file
-      retval=$?
-      if [ $retval != 0 ]; then
-         echo "Could not drop all files. Canceling dcommit" >&2
-         git br -D temp_staged &> /dev/null
-         git reset HEAD~ --hard &> /dev/null
-         cd $CURRENTDIR
-         $SCRIPTSLOC/gitmks.sh rebase &> /dev/null
-         git remote prune shared
-         exit 255
+      #is file ignored?
+      $SCRIPTSLOC/gitmks_ignore.sh $file .mksignore
+      if [ "$?" == 0 ]; then
+         si drop --nocloseCP --cpid $PACKAGE --description "$COMMITMESSAGE" $file
+         retval=$?
+         if [ $retval != 0 ]; then
+            echo "Could not drop all files. Canceling dcommit" >&2
+            git br -D temp_staged &> /dev/null
+            git reset HEAD~ --hard &> /dev/null
+            cd $CURRENTDIR
+            $SCRIPTSLOC/gitmks.sh rebase &> /dev/null
+            git remote prune shared
+            exit 255
+         fi
       fi
    done
 
    # check in all of the files
    for file in `git diff --name-only --diff-filter "M" $patch~1..$patch`; do
-      si ci --unlock --nocloseCP --cpid $PACKAGE --description "$COMMITMESSAGE" --update $file
-      retval=$?
-      if [ $retval != 0 ]; then
-         echo "Could not check in all files. Canceling dcommit" >&2
-         git br -D temp_staged &> /dev/null
-         git reset HEAD~ --hard &> /dev/null
-         cd $CURRENTDIR
-         $SCRIPTSLOC/gitmks.sh rebase &> /dev/null
-         git remote prune shared
-         exit 255
+      #is file ignored?
+      $SCRIPTSLOC/gitmks_ignore.sh $file .mksignore
+      if [ "$?" == 0 ]; then
+         si ci --unlock --nocloseCP --cpid $PACKAGE --description "$COMMITMESSAGE" --update $file
+         retval=$?
+         if [ $retval != 0 ]; then
+            echo "Could not check in all files. Canceling dcommit" >&2
+            git br -D temp_staged &> /dev/null
+            git reset HEAD~ --hard &> /dev/null
+            cd $CURRENTDIR
+            $SCRIPTSLOC/gitmks.sh rebase &> /dev/null
+            git remote prune shared
+            exit 255
+         fi
       fi
    done
 
