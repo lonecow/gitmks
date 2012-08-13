@@ -27,12 +27,17 @@ fi
 cd $GITDIR/..
 
 echo "Cleaning..."
-for entry in `git ls-files --others -i --exclude-standard`; do
+for entry in `git ls-files --others -i --exclude-standard --directory`; do
    rm -rf $entry
+done
 
-   if [ -e $GITDIR/mks_remote/$entry ]; then
-      cp -r $GITDIR/mks_remote/$entry $entry
+cd $GITDIR/mks_remote
+for entry in `git ls-files --others -i --exclude-standard --directory`; do
+   DIRNAME=`dirname $entry`
+   if [ ! -d $DIRNAME ]; then
+      mkdir -p $DIRNAME
    fi
+   cp -r $entry ../../$DIRNAME
 done
 
 echo "Done"
