@@ -72,25 +72,6 @@ for patch in `git rev-list HEAD..temp_staged --reverse`; do
       fi
    done
 
-   #make sure that all members are not locked
-   for file in `git diff --name-only --diff-filter "DM" $patch~1..$patch`; do
-      #is file ignored?
-      $SCRIPTSLOC/gitmks_ignore.sh $file .mksignore
-      if [ "$?" == 0 ]; then
-         LOCKINFO="`si viewlocks $file`"
-         si viewlocks $file | grep rbitel
-         LOCKED_BY_ME=$?
-         if [ -n "$LOCKINFO" -a "$LOCKED_BY_ME" != "0" ]; then
-            echo "One of the files is already locked. Canceling dcommit" >&2
-            git br -D temp_staged &> /dev/null
-            cd $CURRENTDIR
-            $SCRIPTSLOC/gitmks.sh rebase &> /dev/null
-            git remote prune shared
-            exit 255
-         fi
-      fi
-   done
-
    git cherry-pick $patch &> /dev/null
    retval=$?
    if [ $retval != 0 ]; then
@@ -105,6 +86,26 @@ for patch in `git rev-list HEAD..temp_staged --reverse`; do
    patch="`git log --pretty="format:%H" HEAD~..HEAD`"
 
    COMMITMESSAGE="`git log --pretty="format:%s" $patch~1..$patch`"
+
+   #make sure that all members are not locked
+   for file in `git diff --name-only --diff-filter "DM" $patch~1..$patch`; do
+      #is file ignored?
+      $SCRIPTSLOC/gitmks_ignore.sh $file .mksignore
+      if [ "$?" == 0 ]; then
+         LOCKINFO="`si viewlocks $file`"
+         si viewlocks $file | grep rbitel
+         LOCKED_BY_ME=$?
+         if [ -n "$LOCKINFO" -a "$LOCKED_BY_ME" != "0" ]; then
+            echo "One of the files is already locked. Canceling dcommit" >&2
+            git br -D temp_staged &> /dev/null
+            git reset HEAD~ --hard &> /dev/null
+            cd $CURRENTDIR
+            $SCRIPTSLOC/gitmks.sh rebase &> /dev/null
+            git remote prune shared
+            exit 255
+         fi
+      fi
+   done
 
    # lock all of the files
    for file in `git diff --name-only --diff-filter "DM" $patch~1..$patch`; do
