@@ -18,6 +18,7 @@ fi
 CURRENTDIR="`pwd`"
 GITDIR="`git rev-parse --git-dir 2> /dev/null`"
 retval=$?
+SCRIPTSLOC="`dirname $0`"
 
 if [ $retval != 0 -o ! -d $GITDIR/mks_remote ]; then
    echo "You are not it an mks associated git directory" >&2
@@ -28,7 +29,11 @@ cd $GITDIR/..
 
 echo "Cleaning..."
 for entry in `git ls-files --others -i --exclude-standard --directory`; do
-   rm -rf $entry
+   #is file ignored?
+   $SCRIPTSLOC/gitmks_ignore.sh $entry .mksignore
+   if [ "$?" == 0 ]; then
+      rm -rf $entry
+   fi
 done
 
 cd $GITDIR/mks_remote
