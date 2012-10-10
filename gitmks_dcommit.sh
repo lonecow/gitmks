@@ -92,10 +92,10 @@ for patch in `git rev-list HEAD..temp_staged --reverse`; do
       #is file ignored?
       $SCRIPTSLOC/gitmks_ignore.sh $file .mksignore
       if [ "$?" == 0 ]; then
-         LOCKINFO="`si viewlocks $file`"
-         si viewlocks $file | grep rbitel
-         LOCKED_BY_ME=$?
-         if [ -n "$LOCKINFO" -a "$LOCKED_BY_ME" != "0" ]; then
+         lockinfo="`si viewlocks \"$file\"`"
+         si viewlocks "$file" | grep rbitel
+         locked_by_me=$?
+         if [ -n "$lockinfo" -a "$locked_by_me" != "0" ]; then
             echo "One of the files is already locked. Canceling dcommit" >&2
             git br -D temp_staged &> /dev/null
             git reset HEAD~ --hard &> /dev/null
@@ -112,16 +112,21 @@ for patch in `git rev-list HEAD..temp_staged --reverse`; do
       #is file ignored?
       $SCRIPTSLOC/gitmks_ignore.sh $file .mksignore
       if [ "$?" == 0 ]; then
-         si lock --cpid $PACKAGE $file
-         retval=$?
-         if [ $retval != 0 ]; then
-            echo "Could not Lock all files. Canceling dcommit" >&2
-            git br -D temp_staged &> /dev/null
-            git reset HEAD~ --hard &> /dev/null
-            cd $CURRENTDIR
-            $SCRIPTSLOC/gitmks.sh rebase &> /dev/null
-            git remote prune shared
-            exit 255
+         lockinfo="`si viewlocks \"$file\"`"
+         si viewlocks "$file" | grep rbitel
+         locked_by_me=$?
+         if [ -n "$lockinfo" -a "$locked_by_me" != "0" ]; then
+            si lock --cpid $PACKAGE $file
+            retval=$?
+            if [ $retval != 0 ]; then
+               echo "Could not Lock all files. Canceling dcommit" >&2
+               git br -D temp_staged &> /dev/null
+               git reset HEAD~ --hard &> /dev/null
+               cd $CURRENTDIR
+               $SCRIPTSLOC/gitmks.sh rebase &> /dev/null
+               git remote prune shared
+               exit 255
+            fi
          fi
       fi
    done
