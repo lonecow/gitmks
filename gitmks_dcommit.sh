@@ -155,7 +155,7 @@ for patch in `git rev-list HEAD..temp_staged --reverse`; do
       #is file ignored?
       $SCRIPTSLOC/gitmks_ignore.sh $file .mksignore
       if [ "$?" == 0 ]; then
-         si drop --nocloseCP --cpid $PACKAGE --description "$COMMITMESSAGE" $file
+         si drop --nocloseCP --cpid $PACKAGE $file
          retval=$?
          if [ $retval != 0 ]; then
             echo "Could not drop all files. Canceling dcommit" >&2
