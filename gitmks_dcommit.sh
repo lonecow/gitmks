@@ -92,8 +92,8 @@ for patch in `git rev-list HEAD..temp_staged --reverse`; do
       #is file ignored?
       $SCRIPTSLOC/gitmks_ignore.sh $file .mksignore
       if [ "$?" == 0 ]; then
-         lockinfo="`si viewlocks \"$file\"`"
-         si viewlocks "$file" | grep rbitel
+         lockinfo="`si memberinfo \"$file\" | grep \"Locked By:\"`"
+         si memberinfo "$file" | grep "Locked By:" | grep rbitel
          locked_by_me=$?
          if [ -n "$lockinfo" -a "$locked_by_me" != "0" ]; then
             echo "One of the files is already locked. Canceling dcommit" >&2
@@ -112,10 +112,10 @@ for patch in `git rev-list HEAD..temp_staged --reverse`; do
       #is file ignored?
       $SCRIPTSLOC/gitmks_ignore.sh $file .mksignore
       if [ "$?" == 0 ]; then
-         lockinfo="`si viewlocks \"$file\"`"
-         si viewlocks "$file" | grep rbitel
+         lockinfo="`si memberinfo \"$file\" | grep \"Locked By:\"`"
+         si memberinfo "$file" | grep "Locked By:" | grep rbitel
          locked_by_me=$?
-         if [ -n "$lockinfo" -a "$locked_by_me" != "0" ]; then
+         if [ -z "$lockinfo" -a "$locked_by_me" != "0" ]; then
             si lock --cpid $PACKAGE $file
             retval=$?
             if [ $retval != 0 ]; then
