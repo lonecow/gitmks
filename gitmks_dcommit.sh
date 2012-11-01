@@ -85,7 +85,7 @@ for patch in `git rev-list HEAD..temp_staged --reverse`; do
 
    patch="`git log --pretty="format:%H" HEAD~..HEAD`"
 
-   COMMITMESSAGE="`git log --pretty="format:%s" $patch~1..$patch`"
+   COMMITMESSAGE="`git log --pretty="format:%B" $patch~1..$patch`"
 
    #make sure that all members are not locked
    for file in `git diff --name-only --diff-filter "DM" $patch~1..$patch`; do
