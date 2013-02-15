@@ -2,7 +2,7 @@
 
 usage()
 {
-   echo "      clean        cleans all ignored files out of working directory"
+   echo "      clean       cleans all ignored files out of working directory"
 }
 
 ORIGIFS=$IFS

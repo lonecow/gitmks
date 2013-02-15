@@ -8,8 +8,9 @@ echo "
    $SCRIPTSLOC/gitmks_init.sh usage
    $SCRIPTSLOC/gitmks_info.sh usage
    $SCRIPTSLOC/gitmks_clean.sh usage
+   $SCRIPTSLOC/gitmks_addSandbox.sh usage
 echo "      update      updates the mks remote for the given repository
-      fetch      updates the mks remote for the given repository
+      fetch       updates the mks remote for the given repository
       rebase      rebases the mks remote to the currently checked out branch"
 }
 
@@ -32,6 +33,9 @@ elif [ "$1" == "info" ]; then
    exit $?
 elif [ "$1" == "clean" ]; then
    $SCRIPTSLOC/gitmks_clean.sh $@
+   exit $?
+elif [ "$1" == "add" ]; then
+   $SCRIPTSLOC/gitmks_addSandbox.sh $@
    exit $?
 else
    usage $@

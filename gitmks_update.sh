@@ -12,7 +12,10 @@ fi
 
 USER="`git config --get mks.user`"
 
-si resync -S $GITDIR/mks_remote/*.pj --yes --quiet --user $USER
+for line in `cat $GITDIR/mks_projects`; do
+   echo "si resync -S $GITDIR/mks_remote/${line} --yes --quiet --user $USER"
+   si resync -S $GITDIR/mks_remote/${line} --yes --quiet --user $USER
+done
 
 cd $GITDIR/mks_remote
 git add -A &> /dev/null
