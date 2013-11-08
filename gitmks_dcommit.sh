@@ -108,7 +108,7 @@ for patch in `git rev-list HEAD..temp_staged --reverse`; do
    done
 
    # lock all of the files
-   for file in `git diff --name-only --diff-filter "DM" $patch~1..$patch`; do
+   for file in `git diff --name-only --diff-filter "M" $patch~1..$patch`; do
       #is file ignored?
       $SCRIPTSLOC/gitmks_ignore.sh $file .mksignore
       if [ "$?" == 0 ]; then
