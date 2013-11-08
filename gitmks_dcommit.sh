@@ -188,7 +188,10 @@ for patch in `git rev-list HEAD..temp_staged --reverse`; do
       fi
    done
 
-   git ci -a --amend --reuse-message $patch
+   # we are no longer amending changes, we are going to resync between each commit 
+   cd $CURRENTDIR
+   $SCRIPTSLOC/gitmks.sh fetch
+   cd $GITDIR/mks_remote
 done
 
 git br -D temp_staged
