@@ -2,7 +2,7 @@
 
 usage()
 {
-   echo "      add         [MKS project] <local folder> initializes a git/MKS repository at the local location"
+   echo "      add         [MKS project] <local folder> [dev_path] initializes a git/MKS repository at the local location"
 }
 
 if [ "$1" == usage ];then
@@ -33,6 +33,12 @@ else
    PROJECT_DIR=$3
 fi
 
+if [ $# -gt 3 ]; then
+   DEVPATH=$4
+else
+   DEVPATH=""
+fi
+
 USER="`git config --get mks.user`"
 
 PROJECT=$2
@@ -55,7 +61,12 @@ cd $PROJECT_DIR
 
 echo `pwd`
 
-si createsandbox -P $PROJECT --yes --user $USER
+if [ -z "$DEVPATH" ]; then
+   si createsandbox -P $PROJECT --yes --user $USER
+else
+   si createsandbox -P $PROJECT --yes --user $USER --devpath $DEVPATH
+fi
+
 
 git add -A
 git ci -m "Initial Import from MKS for $PROJECT_DIR/`basename $PROJECT`"
