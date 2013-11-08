@@ -154,11 +154,31 @@ for patch in `git rev-list HEAD..temp_staged --reverse`; do
    done
 
    #we are going to drop files that were removed
-   for file in `git diff --name-only --diff-filter "D" $patch~1..$patch`; do
+   #drop members
+   for file in `git diff --name-only --diff-filter "D" $patch~1..$patch | grep -v .pj$`; do
       #is file ignored?
       $SCRIPTSLOC/gitmks_ignore.sh $file .mksignore
       if [ "$?" == 0 ]; then
-         si drop --nocloseCP --cpid $PACKAGE $file
+         si drop --noconfirm --nocloseCP --cpid $PACKAGE $file
+         retval=$?
+         if [ $retval != 0 ]; then
+            echo "Could not drop all files. Canceling dcommit" >&2
+            git br -D temp_staged &> /dev/null
+            git reset HEAD~ --hard &> /dev/null
+            cd $CURRENTDIR
+            $SCRIPTSLOC/gitmks.sh rebase &> /dev/null
+            git remote prune shared
+            exit 255
+         fi
+      fi
+   done
+
+   #drop projects
+   for file in `git diff --name-only --diff-filter "D" $patch~1..$patch | grep .pj$`; do
+      #is file ignored?
+      $SCRIPTSLOC/gitmks_ignore.sh $file .mksignore
+      if [ "$?" == 0 ]; then
+         si drop --noconfirm --nocloseCP --cpid $PACKAGE $file
          retval=$?
          if [ $retval != 0 ]; then
             echo "Could not drop all files. Canceling dcommit" >&2
