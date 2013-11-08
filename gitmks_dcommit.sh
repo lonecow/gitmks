@@ -174,7 +174,7 @@ for patch in `git rev-list HEAD..temp_staged --reverse`; do
    done
 
    #drop projects
-   for file in `git diff --name-only --diff-filter "D" $patch~1..$patch | grep .pj$`; do
+   for file in `git diff --name-only --diff-filter "D" $patch~1..$patch | grep .pj$ | sort -r`; do
       #is file ignored?
       $SCRIPTSLOC/gitmks_ignore.sh $file .mksignore
       if [ "$?" == 0 ]; then
