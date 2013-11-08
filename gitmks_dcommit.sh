@@ -136,8 +136,11 @@ for patch in `git rev-list HEAD..temp_staged --reverse`; do
       #is file ignored?
       $SCRIPTSLOC/gitmks_ignore.sh $file .mksignore
       if [ "$?" == 0 ]; then
-         si add --createSubprojects --nocloseCP --cpid $PACKAGE --description "$COMMITMESSAGE" $file
+         CURRENT_DIR=`pwd`
+         cd `dirname $file`
+         si add --createSubprojects --nocloseCP --nounexpand --cpid $PACKAGE --description "$COMMITMESSAGE" `basename $file`
          retval=$?
+         cd $CURRENT_DIR
          if [ $retval != 0 ]; then
             echo "Could not add all files. Canceling dcommit" >&2
             git br -D temp_staged &> /dev/null
