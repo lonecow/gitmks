@@ -116,7 +116,7 @@ for patch in `git rev-list HEAD..temp_staged --reverse`; do
          si memberinfo "$file" | grep "Locked By:" | grep rbitel
          locked_by_me=$?
          if [ -z "$lockinfo" -a "$locked_by_me" != "0" ]; then
-            si lock --cpid $PACKAGE $file
+            si lock --no --cpid $PACKAGE $file
             retval=$?
             if [ $retval != 0 ]; then
                echo "Could not Lock all files. Canceling dcommit" >&2
@@ -174,7 +174,7 @@ for patch in `git rev-list HEAD..temp_staged --reverse`; do
       #is file ignored?
       $SCRIPTSLOC/gitmks_ignore.sh $file .mksignore
       if [ "$?" == 0 ]; then
-         si ci --unlock --nocloseCP --cpid $PACKAGE --description "$COMMITMESSAGE" --update $file
+         si ci --unlock --nounexpand --nocloseCP --cpid $PACKAGE --description "$COMMITMESSAGE" --update $file
          retval=$?
          if [ $retval != 0 ]; then
             echo "Could not check in all files. Canceling dcommit" >&2
