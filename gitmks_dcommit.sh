@@ -29,32 +29,15 @@ git push shared HEAD:temp_staged -q
 
 cd $GITDIR/mks_remote
 
-echo -e "\n\n______________________________________________________________________"
-echo -e "      You Must Choose a Change package"
-echo -e "\n      Current Open Change Packages:\n"
-si viewcps
-echo -e "______________________________________________________________________\n\n"
-
-CPLIST="`si viewcps | awk '{print $1}'`"
-
 FOUND="FALSE"
 while [ "$FOUND" == "FALSE" ]; do
-   echo "Please Enter the package Number:"
-   read PACKAGE
-
-   si viewcp $PACKAGE &> /dev/null
-   retval=$?
-
-   if [ $retval -eq 0 ]; then
-      for element in $CPLIST; do
-         if [ "$PACKAGE" == "$element" ]; then
-            FOUND="TRUE"
-         fi
-      done
+   echo "Please Enter the Issue Number"
+   read ISSUE
+   if [ -n "$ISSUE" ]; then
+      FOUND="TRUE"
    fi
-
    if [ "$FOUND" == "FALSE" ]; then
-      echo "[$PACKAGE] is an invalid entry try again. or hit ctrl+c to cancel"
+      echo "[$ISSUE] is an invalid entry try again. or hit ctrl+c to cancel"
    fi
 done
 
@@ -86,6 +69,19 @@ for patch in `git rev-list HEAD..temp_staged --reverse`; do
    patch="`git log --pretty="format:%H" HEAD~..HEAD`"
 
    COMMITMESSAGE="`git log --pretty="format:%B" $patch~1..$patch`"
+
+   PACKAGE=`si createcp --issueId=$ISSUE --description $COMMITMESSAGE --summary $COMMITMESSAGE 2>&1`
+   if [ $retval != 0 ]; then
+      echo "Could not create a change package for issue [$ISSUE]" >&2
+      echo "si createcp returned [$PACKAGE]" >&2
+      git br -D temp_staged &> /dev/null
+      git reset HEAD~ --hard &> /dev/null
+      cd $CURRENTDIR
+      $SCRIPTSLOC/gitmks.sh rebase &> /dev/null
+      git remote prune shared
+      exit 255
+   fi
+   PACKAGE=`echo $PACKAGE | awk '{print $5}'`
 
    #make sure that all members are not locked
    for file in `git diff --name-only --diff-filter "DM" $patch~1..$patch`; do
@@ -210,6 +206,8 @@ for patch in `git rev-list HEAD..temp_staged --reverse`; do
          fi
       fi
    done
+
+   si closecp $PACKAGE
 
    # we are no longer amending changes, we are going to resync between each commit 
    cd $CURRENTDIR
