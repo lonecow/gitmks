@@ -174,7 +174,7 @@ for patch in `git rev-list HEAD..temp_staged --reverse`; do
    done
 
    #drop projects
-   for file in `git diff --name-only --diff-filter "D" $patch~1..$patch | grep .pj$ | sort -r`; do
+   for file in `git diff --name-only --diff-filter "D" $patch~1..$patch | grep .pj$ | awk -F "/" '{print NF "|" $0}' | sort -n -r | awk -F "|" '{print $2}'`; do
       #is file ignored?
       $SCRIPTSLOC/gitmks_ignore.sh $file .mksignore
       if [ "$?" == 0 ]; then
@@ -197,7 +197,7 @@ for patch in `git rev-list HEAD..temp_staged --reverse`; do
       #is file ignored?
       $SCRIPTSLOC/gitmks_ignore.sh $file .mksignore
       if [ "$?" == 0 ]; then
-         si ci --unlock --nounexpand --nocloseCP --cpid $PACKAGE --description "$COMMITMESSAGE" --update $file
+         si ci --unlock --nounexpand --nocloseCP --confirmbranchVariant -Y --cpid $PACKAGE --description "$COMMITMESSAGE" --update $file
          retval=$?
          if [ $retval != 0 ]; then
             echo "Could not check in all files. Canceling dcommit" >&2
