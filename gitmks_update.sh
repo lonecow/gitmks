@@ -19,7 +19,7 @@ done
 
 cd $GITDIR/mks_remote
 git add -A &> /dev/null
-git ci -m "Resync"
+git commit -m "Resync"
 
 cd $CURRENTDIR
 git remote update shared &> /dev/null

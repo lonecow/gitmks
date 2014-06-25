@@ -46,7 +46,7 @@ mkdir .git/mks_remote
 cd .git/mks_remote
 
 git init
-git co -b MKS
+git checkout -b MKS
 
 cd $GIT_DIR
 git remote add shared .git/mks_remote

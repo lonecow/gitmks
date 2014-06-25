@@ -69,7 +69,7 @@ fi
 
 
 git add -A
-git ci -m "Initial Import from MKS for $PROJECT_DIR/`basename $PROJECT`"
+git commit -m "Initial Import from MKS for $PROJECT_DIR/`basename $PROJECT`"
 
 cd $CURRENTDIR
 git remote update

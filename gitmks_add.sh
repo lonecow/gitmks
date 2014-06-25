@@ -83,11 +83,11 @@ mkdir .git/mks_remote
 cd .git/mks_remote
 
 git init
-git co -b MKS
+git checkout -b MKS
 
 si createsandbox -P $PROJECT --yes --user $USERNAME
 git add -A
-git ci -m 'Initial Import from MKS'
+git commit -m 'Initial Import from MKS'
 
 cd $GIT_DIR
 git remote add shared .git/mks_remote

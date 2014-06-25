@@ -47,7 +47,7 @@ for patch in `git rev-list HEAD..temp_staged --reverse`; do
       $SCRIPTSLOC/gitmks_ignore.sh $file .mksignore
       if [ "$?" == 0 ]; then
          echo "Trying to dcommit one of the unsupported types [CRTUXB]. Canceling dcommit" >&2
-         git br -D temp_staged &> /dev/null
+         git branch -D temp_staged &> /dev/null
          cd $CURRENTDIR
          $SCRIPTSLOC/gitmks.sh rebase &> /dev/null
          git remote prune shared
@@ -59,7 +59,7 @@ for patch in `git rev-list HEAD..temp_staged --reverse`; do
    retval=$?
    if [ $retval != 0 ]; then
       echo "Could not cherry pick commit. Canceling dcommit" >&2
-      git br -D temp_staged &> /dev/null
+      git branch -D temp_staged &> /dev/null
       cd $CURRENTDIR
       $SCRIPTSLOC/gitmks.sh rebase &> /dev/null
       git remote prune shared
@@ -74,7 +74,7 @@ for patch in `git rev-list HEAD..temp_staged --reverse`; do
    if [ $retval != 0 ]; then
       echo "Could not create a change package for issue [$ISSUE]" >&2
       echo "si createcp returned [$PACKAGE]" >&2
-      git br -D temp_staged &> /dev/null
+      git branch -D temp_staged &> /dev/null
       git reset HEAD~ --hard &> /dev/null
       cd $CURRENTDIR
       $SCRIPTSLOC/gitmks.sh rebase &> /dev/null
@@ -93,7 +93,7 @@ for patch in `git rev-list HEAD..temp_staged --reverse`; do
          locked_by_me=$?
          if [ -n "$lockinfo" -a "$locked_by_me" != "0" ]; then
             echo "One of the files is already locked. Canceling dcommit" >&2
-            git br -D temp_staged &> /dev/null
+            git branch -D temp_staged &> /dev/null
             git reset HEAD~ --hard &> /dev/null
             cd $CURRENTDIR
             $SCRIPTSLOC/gitmks.sh rebase &> /dev/null
@@ -116,7 +116,7 @@ for patch in `git rev-list HEAD..temp_staged --reverse`; do
             retval=$?
             if [ $retval != 0 ]; then
                echo "Could not Lock all files. Canceling dcommit" >&2
-               git br -D temp_staged &> /dev/null
+               git branch -D temp_staged &> /dev/null
                git reset HEAD~ --hard &> /dev/null
                cd $CURRENTDIR
                $SCRIPTSLOC/gitmks.sh rebase &> /dev/null
@@ -139,7 +139,7 @@ for patch in `git rev-list HEAD..temp_staged --reverse`; do
          cd $CURRENT_DIR
          if [ $retval != 0 ]; then
             echo "Could not add all files. Canceling dcommit" >&2
-            git br -D temp_staged &> /dev/null
+            git branch -D temp_staged &> /dev/null
             git reset HEAD~ --hard &> /dev/null
             cd $CURRENTDIR
             $SCRIPTSLOC/gitmks.sh rebase &> /dev/null
@@ -159,7 +159,7 @@ for patch in `git rev-list HEAD..temp_staged --reverse`; do
          retval=$?
          if [ $retval != 0 ]; then
             echo "Could not drop all files. Canceling dcommit" >&2
-            git br -D temp_staged &> /dev/null
+            git branch -D temp_staged &> /dev/null
             git reset HEAD~ --hard &> /dev/null
             cd $CURRENTDIR
             $SCRIPTSLOC/gitmks.sh rebase &> /dev/null
@@ -178,7 +178,7 @@ for patch in `git rev-list HEAD..temp_staged --reverse`; do
          retval=$?
          if [ $retval != 0 ]; then
             echo "Could not drop all files. Canceling dcommit" >&2
-            git br -D temp_staged &> /dev/null
+            git branch -D temp_staged &> /dev/null
             git reset HEAD~ --hard &> /dev/null
             cd $CURRENTDIR
             $SCRIPTSLOC/gitmks.sh rebase &> /dev/null
@@ -197,7 +197,7 @@ for patch in `git rev-list HEAD..temp_staged --reverse`; do
          retval=$?
          if [ $retval != 0 ]; then
             echo "Could not check in all files. Canceling dcommit" >&2
-            git br -D temp_staged &> /dev/null
+            git branch -D temp_staged &> /dev/null
             git reset HEAD~ --hard &> /dev/null
             cd $CURRENTDIR
             $SCRIPTSLOC/gitmks.sh rebase &> /dev/null
@@ -215,7 +215,7 @@ for patch in `git rev-list HEAD..temp_staged --reverse`; do
    cd $GITDIR/mks_remote
 done
 
-git br -D temp_staged
+git branch -D temp_staged
 cd $CURRENTDIR
 $SCRIPTSLOC/gitmks.sh rebase
 git remote prune shared
