@@ -29,19 +29,28 @@ git push shared HEAD:temp_staged -q
 
 cd $GITDIR/mks_remote
 
-FOUND="FALSE"
-while [ "$FOUND" == "FALSE" ]; do
-   echo "Please Enter the Issue Number"
-   read ISSUE
-   if [ -n "$ISSUE" ]; then
-      FOUND="TRUE"
-   fi
-   if [ "$FOUND" == "FALSE" ]; then
-      echo "[$ISSUE] is an invalid entry try again. or hit ctrl+c to cancel"
-   fi
-done
-
 for patch in `git rev-list HEAD..temp_staged --reverse`; do
+   echo -e "\n\n***************************************************************************"
+   echo "Commit Message:"
+   echo "   `git log --pretty="format:%B" $patch~1..$patch`"
+   echo "Files Changed:"
+   for file in `git diff --name-only $patch~1..$patch`; do
+      echo "   $file"
+   done
+   echo -e "***************************************************************************\n"
+
+   FOUND="FALSE"
+   while [ "$FOUND" == "FALSE" ]; do
+      echo "Please Enter the Issue Number"
+      read ISSUE
+      if [ -n "$ISSUE" ]; then
+         FOUND="TRUE"
+      fi
+      if [ "$FOUND" == "FALSE" ]; then
+         echo "[$ISSUE] is an invalid entry try again. or hit ctrl+c to cancel"
+      fi
+   done
+
    for file in `git diff --name-only --diff-filter "CRTUXB" $patch~1..$patch`; do
       #is file ignored?
       $SCRIPTSLOC/gitmks_ignore.sh $file .mksignore
