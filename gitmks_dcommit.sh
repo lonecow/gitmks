@@ -7,6 +7,8 @@ IFS=`echo -en "\n\b"`
 
 SCRIPTSLOC="`dirname $0`"
 
+ISSUE=""
+
 $SCRIPTSLOC/gitmks.sh fetch
 $SCRIPTSLOC/gitmks.sh rebase
 retval=$?
@@ -39,12 +41,20 @@ for patch in `git rev-list HEAD..temp_staged --reverse`; do
    done
    echo -e "***************************************************************************\n"
 
+   OLD_ISSUE=$ISSUE
    FOUND="FALSE"
    while [ "$FOUND" == "FALSE" ]; do
-      echo "Please Enter the Issue Number"
+      if [ -z "$OLD_ISSUE" ]; then
+         echo "Please Enter the Issue Number"
+      else
+         echo "Please Enter the Issue Number or hit ctrl+c to cancel [$OLD_ISSUE]"
+      fi
       read ISSUE
       if [ -n "$ISSUE" ]; then
          FOUND="TRUE"
+      elif [ -n "$OLD_ISSUE" ]; then
+         FOUND="TRUE"
+         ISSUE=$OLD_ISSUE
       fi
       if [ "$FOUND" == "FALSE" ]; then
          echo "[$ISSUE] is an invalid entry try again. or hit ctrl+c to cancel"
