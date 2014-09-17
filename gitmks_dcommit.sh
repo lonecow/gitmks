@@ -1,5 +1,26 @@
 #!/bin/bash
 
+BaseCleanup()
+{
+   git branch -D temp_staged &> /dev/null
+   cd $CURRENTDIR
+   $SCRIPTSLOC/gitmks.sh fetch &> /dev/null
+   $SCRIPTSLOC/gitmks.sh rebase &> /dev/null
+   git remote prune shared
+}
+
+CleanupFailure()
+{
+   git reset HEAD~ --hard &> /dev/null
+   BaseCleanup
+}
+
+CleanupSucess()
+{
+   BaseCleanup
+}
+
+
 ORIGIFS=$IFS
 
 # set $IFS to end-of-line
@@ -66,11 +87,46 @@ for patch in `git rev-list HEAD..temp_staged --reverse`; do
       $SCRIPTSLOC/gitmks_ignore.sh $file .mksignore
       if [ "$?" == 0 ]; then
          echo "Trying to dcommit one of the unsupported types [CRTUXB]. Canceling dcommit" >&2
-         git branch -D temp_staged &> /dev/null
-         cd $CURRENTDIR
-         $SCRIPTSLOC/gitmks.sh rebase &> /dev/null
-         git remote prune shared
+         BaseCleanup
          exit 255
+      fi
+   done
+
+   #make sure that all members are not locked and not frozen
+   for file in `git diff --name-only --diff-filter "DM" $patch~1..$patch`; do
+      #is file ignored?
+      $SCRIPTSLOC/gitmks_ignore.sh $file .mksignore
+      if [ "$?" == 0 ]; then
+         # is it frozen
+         si memberinfo "$file" | grep "This member is frozen"
+         frozen=$?
+         #is it locked
+         lockinfo="`si memberinfo \"$file\" | grep \"Locked By:\"`"
+         #is it locked by me
+         si memberinfo "$file" | grep "Locked By:" | grep rbitel
+         locked_by_me=$?
+         echo "$file" | grep ".pj$"
+         # check it it is a project
+         is_project=$?
+         if [ "$is_project" = "0" ]; then
+            proj_name="`si projectinfo --sandbox $file | grep "Project Name:" | awk -F "Project Name: " '{print $2}'`"
+            repo_loc="`si projectinfo --sandbox $file | grep "Repository Location:" | awk -F "Repository Location: " '{print $2}'`"
+            if [ "$proj_name" != "$repo_loc" ]; then
+               echo "The project [$file] is a shared sub-project. Canceling dcommit" >&2
+               BaseCleanup
+               exit 255
+            fi
+         fi
+         if [ -n "$lockinfo" -a "$locked_by_me" != "0" ]; then
+            echo "One of the files is already locked. Canceling dcommit" >&2
+            BaseCleanup
+            exit 255
+         fi
+         if [ "$frozen" = "0" ]; then
+            echo "One of the files is frozen. Canceling dcommit" >&2
+            BaseCleanup
+            exit 255
+         fi
       fi
    done
 
@@ -78,10 +134,7 @@ for patch in `git rev-list HEAD..temp_staged --reverse`; do
    retval=$?
    if [ $retval != 0 ]; then
       echo "Could not cherry pick commit. Canceling dcommit" >&2
-      git branch -D temp_staged &> /dev/null
-      cd $CURRENTDIR
-      $SCRIPTSLOC/gitmks.sh rebase &> /dev/null
-      git remote prune shared
+      BaseCleanup
       exit 255
    fi
 
@@ -93,34 +146,10 @@ for patch in `git rev-list HEAD..temp_staged --reverse`; do
    if [ $retval != 0 ]; then
       echo "Could not create a change package for issue [$ISSUE]" >&2
       echo "si createcp returned [$PACKAGE]" >&2
-      git branch -D temp_staged &> /dev/null
-      git reset HEAD~ --hard &> /dev/null
-      cd $CURRENTDIR
-      $SCRIPTSLOC/gitmks.sh rebase &> /dev/null
-      git remote prune shared
+      CleanupFailure
       exit 255
    fi
    PACKAGE=`echo $PACKAGE | awk '{print $5}'`
-
-   #make sure that all members are not locked
-   for file in `git diff --name-only --diff-filter "DM" $patch~1..$patch`; do
-      #is file ignored?
-      $SCRIPTSLOC/gitmks_ignore.sh $file .mksignore
-      if [ "$?" == 0 ]; then
-         lockinfo="`si memberinfo \"$file\" | grep \"Locked By:\"`"
-         si memberinfo "$file" | grep "Locked By:" | grep rbitel
-         locked_by_me=$?
-         if [ -n "$lockinfo" -a "$locked_by_me" != "0" ]; then
-            echo "One of the files is already locked. Canceling dcommit" >&2
-            git branch -D temp_staged &> /dev/null
-            git reset HEAD~ --hard &> /dev/null
-            cd $CURRENTDIR
-            $SCRIPTSLOC/gitmks.sh rebase &> /dev/null
-            git remote prune shared
-            exit 255
-         fi
-      fi
-   done
 
    # lock all of the files
    for file in `git diff --name-only --diff-filter "M" $patch~1..$patch`; do
@@ -135,11 +164,7 @@ for patch in `git rev-list HEAD..temp_staged --reverse`; do
             retval=$?
             if [ $retval != 0 ]; then
                echo "Could not Lock all files. Canceling dcommit" >&2
-               git branch -D temp_staged &> /dev/null
-               git reset HEAD~ --hard &> /dev/null
-               cd $CURRENTDIR
-               $SCRIPTSLOC/gitmks.sh rebase &> /dev/null
-               git remote prune shared
+               CleanupFailure
                exit 255
             fi
          fi
@@ -158,11 +183,7 @@ for patch in `git rev-list HEAD..temp_staged --reverse`; do
          cd $CURRENT_DIR
          if [ $retval != 0 ]; then
             echo "Could not add all files. Canceling dcommit" >&2
-            git branch -D temp_staged &> /dev/null
-            git reset HEAD~ --hard &> /dev/null
-            cd $CURRENTDIR
-            $SCRIPTSLOC/gitmks.sh rebase &> /dev/null
-            git remote prune shared
+            CleanupFailure
             exit 255
          fi
       fi
@@ -178,11 +199,7 @@ for patch in `git rev-list HEAD..temp_staged --reverse`; do
          retval=$?
          if [ $retval != 0 ]; then
             echo "Could not drop all files. Canceling dcommit" >&2
-            git branch -D temp_staged &> /dev/null
-            git reset HEAD~ --hard &> /dev/null
-            cd $CURRENTDIR
-            $SCRIPTSLOC/gitmks.sh rebase &> /dev/null
-            git remote prune shared
+            CleanupFailure
             exit 255
          fi
       fi
@@ -197,11 +214,7 @@ for patch in `git rev-list HEAD..temp_staged --reverse`; do
          retval=$?
          if [ $retval != 0 ]; then
             echo "Could not drop all files. Canceling dcommit" >&2
-            git branch -D temp_staged &> /dev/null
-            git reset HEAD~ --hard &> /dev/null
-            cd $CURRENTDIR
-            $SCRIPTSLOC/gitmks.sh rebase &> /dev/null
-            git remote prune shared
+            CleanupFailure
             exit 255
          fi
       fi
@@ -216,11 +229,7 @@ for patch in `git rev-list HEAD..temp_staged --reverse`; do
          retval=$?
          if [ $retval != 0 ]; then
             echo "Could not check in all files. Canceling dcommit" >&2
-            git branch -D temp_staged &> /dev/null
-            git reset HEAD~ --hard &> /dev/null
-            cd $CURRENTDIR
-            $SCRIPTSLOC/gitmks.sh rebase &> /dev/null
-            git remote prune shared
+            CleanupFailure
             exit 255
          fi
       fi
@@ -228,16 +237,13 @@ for patch in `git rev-list HEAD..temp_staged --reverse`; do
 
    si closecp $PACKAGE
 
-   # we are no longer amending changes, we are going to resync between each commit 
+   # we are no longer amending changes, we are going to resync between each commit
    cd $CURRENTDIR
    $SCRIPTSLOC/gitmks.sh fetch
    cd $GITDIR/mks_remote
 done
 
-git branch -D temp_staged
-cd $CURRENTDIR
-$SCRIPTSLOC/gitmks.sh rebase
-git remote prune shared
+CleanupSucess
 
 IFS=$ORIGIFS
 
