@@ -141,8 +141,9 @@ for patch in `git rev-list HEAD..temp_staged --reverse`; do
    patch="`git log --pretty="format:%H" HEAD~..HEAD`"
 
    COMMITMESSAGE="`git log --pretty="format:%B" $patch~1..$patch`"
+   SUMMARY="`echo $COMMITMESSAGE | cut -c1-250`"
 
-   PACKAGE=`si createcp --issueId=$ISSUE --description "$COMMITMESSAGE" --summary "$COMMITMESSAGE" 2>&1`
+   PACKAGE=`si createcp --issueId=$ISSUE --description "$COMMITMESSAGE" --summary "$SUMMARY" 2>&1`
    if [ $retval != 0 ]; then
       echo "Could not create a change package for issue [$ISSUE]" >&2
       echo "si createcp returned [$PACKAGE]" >&2
