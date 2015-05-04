@@ -22,6 +22,7 @@ CleanupSucess()
 
 
 ORIGIFS=$IFS
+USER="`git config --get mks.user`"
 
 # set $IFS to end-of-line
 IFS=`echo -en "\n\b"`
@@ -158,7 +159,7 @@ for patch in `git rev-list HEAD..temp_staged --reverse`; do
       $SCRIPTSLOC/gitmks_ignore.sh $file .mksignore
       if [ "$?" == 0 ]; then
          lockinfo="`si memberinfo \"$file\" | grep \"Locked By:\"`"
-         si memberinfo "$file" | grep "Locked By:" | grep rbitel
+         si memberinfo "$file" | grep "Locked By:" | grep ${USER}
          locked_by_me=$?
          if [ -z "$lockinfo" -a "$locked_by_me" != "0" ]; then
             si lock --no --cpid $PACKAGE $file
