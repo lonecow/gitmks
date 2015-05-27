@@ -104,7 +104,7 @@ for patch in `git rev-list HEAD..temp_staged --reverse`; do
          #is it locked
          lockinfo="`si memberinfo \"$file\" | grep \"Locked By:\"`"
          #is it locked by me
-         si memberinfo "$file" | grep "Locked By:" | grep rbitel
+         si memberinfo "$file" | grep "Locked By:" | grep ${USER}
          locked_by_me=$?
          echo "$file" | grep ".pj$"
          # check it it is a project
