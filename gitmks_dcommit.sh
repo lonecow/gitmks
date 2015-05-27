@@ -85,7 +85,7 @@ for patch in `git rev-list HEAD..temp_staged --reverse`; do
 
    for file in `git diff --name-only --diff-filter "CRTUXB" $patch~1..$patch`; do
       #is file ignored?
-      $SCRIPTSLOC/gitmks_ignore.sh $file .mksignore
+      $SCRIPTSLOC/gitmks_ignore.sh "$file" .mksignore
       if [ "$?" == 0 ]; then
          echo "Trying to dcommit one of the unsupported types [CRTUXB]. Canceling dcommit" >&2
          BaseCleanup
@@ -96,7 +96,7 @@ for patch in `git rev-list HEAD..temp_staged --reverse`; do
    #make sure that all members are not locked and not frozen
    for file in `git diff --name-only --diff-filter "DM" $patch~1..$patch`; do
       #is file ignored?
-      $SCRIPTSLOC/gitmks_ignore.sh $file .mksignore
+      $SCRIPTSLOC/gitmks_ignore.sh "$file" .mksignore
       if [ "$?" == 0 ]; then
          # is it frozen
          si memberinfo "$file" | grep "This member is frozen"
@@ -156,13 +156,13 @@ for patch in `git rev-list HEAD..temp_staged --reverse`; do
    # lock all of the files
    for file in `git diff --name-only --diff-filter "M" $patch~1..$patch`; do
       #is file ignored?
-      $SCRIPTSLOC/gitmks_ignore.sh $file .mksignore
+      $SCRIPTSLOC/gitmks_ignore.sh "$file" .mksignore
       if [ "$?" == 0 ]; then
          lockinfo="`si memberinfo \"$file\" | grep \"Locked By:\"`"
          si memberinfo "$file" | grep "Locked By:" | grep ${USER}
          locked_by_me=$?
          if [ -z "$lockinfo" -a "$locked_by_me" != "0" ]; then
-            si lock --no --cpid $PACKAGE $file
+            si lock --no --cpid $PACKAGE "$file"
             retval=$?
             if [ $retval != 0 ]; then
                echo "Could not Lock all files. Canceling dcommit" >&2
@@ -176,11 +176,11 @@ for patch in `git rev-list HEAD..temp_staged --reverse`; do
    #we are going to add files that were newly added
    for file in `git diff --name-only --diff-filter "A" $patch~1..$patch`; do
       #is file ignored?
-      $SCRIPTSLOC/gitmks_ignore.sh $file .mksignore
+      $SCRIPTSLOC/gitmks_ignore.sh "$file" .mksignore
       if [ "$?" == 0 ]; then
          CURRENT_DIR=`pwd`
-         cd `dirname $file`
-         si add --createSubprojects --nocloseCP --nounexpand --cpid $PACKAGE --description "$COMMITMESSAGE" `basename $file`
+         cd "`dirname "$file"`"
+         si add --createSubprojects --nocloseCP --nounexpand --cpid $PACKAGE --description "$COMMITMESSAGE" "`basename "$file"`"
          retval=$?
          cd $CURRENT_DIR
          if [ $retval != 0 ]; then
@@ -195,9 +195,9 @@ for patch in `git rev-list HEAD..temp_staged --reverse`; do
    #drop members
    for file in `git diff --name-only --diff-filter "D" $patch~1..$patch | grep -v .pj$`; do
       #is file ignored?
-      $SCRIPTSLOC/gitmks_ignore.sh $file .mksignore
+      $SCRIPTSLOC/gitmks_ignore.sh "$file" .mksignore
       if [ "$?" == 0 ]; then
-         si drop --noconfirm --nocloseCP --cpid $PACKAGE $file
+         si drop --noconfirm --nocloseCP --cpid $PACKAGE "$file"
          retval=$?
          if [ $retval != 0 ]; then
             echo "Could not drop all files. Canceling dcommit" >&2
@@ -210,9 +210,9 @@ for patch in `git rev-list HEAD..temp_staged --reverse`; do
    #drop projects
    for file in `git diff --name-only --diff-filter "D" $patch~1..$patch | grep .pj$ | awk -F "/" '{print NF "|" $0}' | sort -n -r | awk -F "|" '{print $2}'`; do
       #is file ignored?
-      $SCRIPTSLOC/gitmks_ignore.sh $file .mksignore
+      $SCRIPTSLOC/gitmks_ignore.sh "$file" .mksignore
       if [ "$?" == 0 ]; then
-         si drop --noconfirm --nocloseCP --cpid $PACKAGE $file
+         si drop --noconfirm --nocloseCP --cpid $PACKAGE "$file"
          retval=$?
          if [ $retval != 0 ]; then
             echo "Could not drop all files. Canceling dcommit" >&2
@@ -225,9 +225,9 @@ for patch in `git rev-list HEAD..temp_staged --reverse`; do
    # check in all of the files
    for file in `git diff --name-only --diff-filter "M" $patch~1..$patch`; do
       #is file ignored?
-      $SCRIPTSLOC/gitmks_ignore.sh $file .mksignore
+      $SCRIPTSLOC/gitmks_ignore.sh "$file" .mksignore
       if [ "$?" == 0 ]; then
-         si ci --unlock --nounexpand --nocloseCP --confirmbranchVariant -Y --cpid $PACKAGE --description "$COMMITMESSAGE" --update $file
+         si ci --unlock --nounexpand --nocloseCP --confirmbranchVariant -Y --cpid $PACKAGE --description "$COMMITMESSAGE" --update "$file"
          retval=$?
          if [ $retval != 0 ]; then
             echo "Could not check in all files. Canceling dcommit" >&2
