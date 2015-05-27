@@ -108,16 +108,7 @@ for patch in `git rev-list HEAD..temp_staged --reverse`; do
          locked_by_me=$?
          echo "$file" | grep ".pj$"
          # check it it is a project
-         is_project=$?
-         if [ "$is_project" = "0" ]; then
-            proj_name="`si projectinfo --sandbox $file | grep "Project Name:" | awk -F "Project Name: " '{print $2}'`"
-            repo_loc="`si projectinfo --sandbox $file | grep "Repository Location:" | awk -F "Repository Location: " '{print $2}'`"
-            if [ "$proj_name" != "$repo_loc" ]; then
-               echo "The project [$file] is a shared sub-project. Canceling dcommit" >&2
-               BaseCleanup
-               exit 255
-            fi
-         fi
+
          if [ -n "$lockinfo" -a "$locked_by_me" != "0" ]; then
             echo "One of the files is already locked. Canceling dcommit" >&2
             BaseCleanup
