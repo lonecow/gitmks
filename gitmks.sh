@@ -9,6 +9,8 @@ echo "
    $SCRIPTSLOC/gitmks_info.sh usage
    $SCRIPTSLOC/gitmks_clean.sh usage
    $SCRIPTSLOC/gitmks_addSandbox.sh usage
+   $SCRIPTSLOC/gitmks_ViewSandbox.sh usage
+   $SCRIPTSLOC/gitmks_ViewNonMembers.sh usage
 echo "      update      updates the mks remote for the given repository
       fetch       updates the mks remote for the given repository
       rebase      rebases the mks remote to the currently checked out branch"
@@ -36,6 +38,12 @@ elif [ "$1" == "clean" ]; then
    exit $?
 elif [ "$1" == "add" ]; then
    $SCRIPTSLOC/gitmks_addSandbox.sh $@
+   exit $?
+elif [ "$1" == "viewsandbox" ]; then
+   $SCRIPTSLOC/gitmks_ViewSandbox.sh $@
+   exit $?
+elif [ "$1" == "viewnonmembers" ]; then
+   $SCRIPTSLOC/gitmks_ViewNonMembers.sh $@
    exit $?
 else
    usage $@
