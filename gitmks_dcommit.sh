@@ -171,7 +171,7 @@ for patch in `git rev-list HEAD..temp_staged --reverse`; do
       if [ "$?" == 0 ]; then
          CURRENT_DIR=`pwd`
          cd "`dirname "$file"`"
-         si add --createSubprojects --nocloseCP --nounexpand --cpid $PACKAGE --description "$COMMITMESSAGE" "`basename "$file"`"
+         si add --createSubprojects --nocloseCP --nounexpand --cpid $PACKAGE --description "$COMMITMESSAGE" --yes "`basename "$file"`"
          retval=$?
          cd $CURRENT_DIR
          if [ $retval != 0 ]; then
