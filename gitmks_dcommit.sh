@@ -12,6 +12,7 @@ BaseCleanup()
 CleanupFailure()
 {
    git reset HEAD~ --hard &> /dev/null
+   git clean -dxf
    BaseCleanup
 }
 
