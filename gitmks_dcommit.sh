@@ -22,7 +22,31 @@ CleanupSucess()
 
 
 ORIGIFS=$IFS
-USER="`git config --get mks.user`"
+MKSUSER="`git config --get mks.user`"
+retval=$?
+if [ $retval != 0 ]; then
+   echo "mks.user is not set in git config" >&2
+   exit 255
+fi
+
+JIRAHOST="`git config --get jira.host`"
+retval=$?
+if [ $retval != 0 ]; then
+   echo "jira.host is not set in git config" >&2
+   exit 255
+fi
+
+FOUND="FALSE"
+while [ "$FOUND" == "FALSE" ]; do
+   echo "Please Enter your windows password"
+   read -s PASSWORD
+   if [ -n "$PASSWORD" ]; then
+      FOUND="TRUE"
+   fi
+   if [ "$FOUND" == "FALSE" ]; then
+      echo "[$PASSWORD] is an invalid entry try again. or hit ctrl+c to cancel"
+   fi
+done
 
 # set $IFS to end-of-line
 IFS=`echo -en "\n\b"`
@@ -104,7 +128,7 @@ for patch in `git rev-list HEAD..temp_staged --reverse`; do
          #is it locked
          lockinfo="`si memberinfo \"$file\" | grep \"Locked By:\"`"
          #is it locked by me
-         si memberinfo "$file" | grep "Locked By:" | grep ${USER}
+         si memberinfo "$file" | grep "Locked By:" | grep ${MKSUSER}
          locked_by_me=$?
          echo "$file" | grep ".pj$"
          # check it it is a project
@@ -135,14 +159,14 @@ for patch in `git rev-list HEAD..temp_staged --reverse`; do
    COMMITMESSAGE="`git log --pretty="format:%B" $patch~1..$patch`"
    SUMMARY="`echo $COMMITMESSAGE | cut -c1-250`"
 
-   PACKAGE=`si createcp --issueId=$ISSUE --description "$COMMITMESSAGE" --summary "$SUMMARY" 2>&1`
+   PACKAGE=`python.exe $SCRIPTSLOC/CreateChangePackage.py --summary "$SUMMARY" --description "$COMMITMESSAGE" $JIRAHOST $USERNAME $PASSWORD $ISSUE`
+   retval=$?
    if [ $retval != 0 ]; then
       echo "Could not create a change package for issue [$ISSUE]" >&2
       echo "si createcp returned [$PACKAGE]" >&2
       CleanupFailure
       exit 255
    fi
-   PACKAGE=`echo $PACKAGE | awk '{print $5}'`
 
    # lock all of the files
    for file in `git diff --name-only --diff-filter "M" $patch~1..$patch`; do
@@ -150,7 +174,7 @@ for patch in `git rev-list HEAD..temp_staged --reverse`; do
       $SCRIPTSLOC/gitmks_ignore.sh "$file" .mksignore
       if [ "$?" == 0 ]; then
          lockinfo="`si memberinfo \"$file\" | grep \"Locked By:\"`"
-         si memberinfo "$file" | grep "Locked By:" | grep ${USER}
+         si memberinfo "$file" | grep "Locked By:" | grep ${MKSUSER}
          locked_by_me=$?
          if [ -z "$lockinfo" -a "$locked_by_me" != "0" ]; then
             si lock --no --cpid $PACKAGE "$file"
