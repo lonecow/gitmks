@@ -36,6 +36,12 @@ if [ $retval != 0 ]; then
    echo "jira.host is not set in git config" >&2
    exit 255
 fi
+PTCHOST="`git config --get mks.host`"
+retval=$?
+if [ $retval != 0 ]; then
+   echo "mks.host is not set in git config" >&2
+   exit 255
+fi
 
 FOUND="FALSE"
 while [ "$FOUND" == "FALSE" ]; do
@@ -160,7 +166,7 @@ for patch in `git rev-list HEAD..temp_staged --reverse`; do
    COMMITMESSAGE="`git log --pretty="format:%B" $patch~1..$patch`"
    SUMMARY="`echo $COMMITMESSAGE | cut -c1-250`"
 
-   PACKAGE=`python.exe $SCRIPTSLOC/CreateChangePackage.py --summary "$SUMMARY" --description "$COMMITMESSAGE" $JIRAHOST $USERNAME $PASSWORD $ISSUE`
+   PACKAGE=`python.exe $SCRIPTSLOC/CreateChangePackage.py --summary "$SUMMARY" --description "$COMMITMESSAGE" --ptc_host $PTCHOST $JIRAHOST $USERNAME $PASSWORD $ISSUE`
    retval=$?
    if [ $retval != 0 ]; then
       echo "Could not create a change package for issue [$ISSUE]" >&2

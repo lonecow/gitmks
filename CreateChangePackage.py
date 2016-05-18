@@ -3,7 +3,6 @@ from jira import JIRA
 import argparse
 
 
-
 parser = argparse.ArgumentParser(description='Creates A Jira/Ptc Change-package and returns the ID')
 
 
@@ -26,7 +25,7 @@ parser.add_argument('--verbose', dest='VERBOSE', default=False, action='store_tr
 if __name__ == "__main__":
    args=parser.parse_args()
 
-   cp = ChangePackage.Create('ALVA-MKS01', 7001, args.Summary, args.Description)
+   cp = ChangePackage.Create(args.PtcHostName, args.Summary, args.Description)
    jira = JIRA(args.JiraHost, basic_auth=(args.JiraUser, args.JiraPass))
 
    issue_dict = {
@@ -35,10 +34,9 @@ if __name__ == "__main__":
       'description': args.Description,
       'issuetype': {'name': 'Change Package'},
       'parent': {'key': args.Issue},
-      'customfield_10313' : cp.GetChangePackageId()
+      'customfield_10313' : 'integrity://%s/si/viewcp?selection=%s' % (args.PtcHostName, cp.GetChangePackageId())
    }
    new_issue = jira.create_issue(fields=issue_dict)
-
 
    print(cp.GetChangePackageId())
    exit(0)

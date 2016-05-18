@@ -17,13 +17,15 @@ def PrintCommand(command):
 
 class ChangePackage:
    @staticmethod
-   def Create(hostname, port, summary, description, issueId='', user=None, password=None):
+   def Create(hostname, summary, description, issueId='', user=None, password=None):
+      host = hostname.split(':')[0]
+      port = hostname.split(':')[1]
       command = [   'si',
                      'createcp',
                      '--issueId=\'%s\'' % issueId,
                      '--description="%s"' % description,
                      '--summary="%s"' % summary,
-                     '--hostname=%s' % hostname,
+                     '--hostname=%s' % host,
                      '--port=%s' % port]
 
       if user != None:
