@@ -93,3 +93,5 @@ cd $GIT_DIR
 git remote add shared .git/mks_remote
 git remote update
 
+git branch --track shared/MKS
+

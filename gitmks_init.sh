@@ -51,5 +51,4 @@ git checkout -b MKS
 cd $GIT_DIR
 git remote add shared .git/mks_remote
 git remote update
-git br master --track shared/MKS
 
