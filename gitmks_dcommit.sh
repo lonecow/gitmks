@@ -114,7 +114,7 @@ for patch in `git rev-list HEAD..temp_staged --reverse`; do
       fi
    done
 
-   for file in `git diff --name-only --diff-filter "CRTUXB" $patch~1..$patch`; do
+   for file in `git diff --name-only --no-renames --diff-filter "CRTUXB" $patch~1..$patch`; do
       #is file ignored?
       $SCRIPTSLOC/gitmks_ignore.sh "$file" .mksignore
       if [ "$?" == 0 ]; then
@@ -125,7 +125,7 @@ for patch in `git rev-list HEAD..temp_staged --reverse`; do
    done
 
    #make sure that all members are not locked and not frozen
-   for file in `git diff --name-only --diff-filter "DM" $patch~1..$patch`; do
+   for file in `git diff --name-only --no-renames --diff-filter "DM" $patch~1..$patch`; do
       #is file ignored?
       $SCRIPTSLOC/gitmks_ignore.sh "$file" .mksignore
       if [ "$?" == 0 ]; then
@@ -176,7 +176,7 @@ for patch in `git rev-list HEAD..temp_staged --reverse`; do
    fi
 
    # lock all of the files
-   for file in `git diff --name-only --diff-filter "M" $patch~1..$patch`; do
+   for file in `git diff --name-only --no-renames --diff-filter "M" $patch~1..$patch`; do
       #is file ignored?
       $SCRIPTSLOC/gitmks_ignore.sh "$file" .mksignore
       if [ "$?" == 0 ]; then
@@ -196,7 +196,7 @@ for patch in `git rev-list HEAD..temp_staged --reverse`; do
    done
 
    #we are going to add files that were newly added
-   for file in `git diff --name-only --diff-filter "A" $patch~1..$patch`; do
+   for file in `git diff --name-only --no-renames --diff-filter "A" $patch~1..$patch`; do
       #is file ignored?
       $SCRIPTSLOC/gitmks_ignore.sh "$file" .mksignore
       if [ "$?" == 0 ]; then
@@ -215,7 +215,7 @@ for patch in `git rev-list HEAD..temp_staged --reverse`; do
 
    #we are going to drop files that were removed
    #drop members
-   for file in `git diff --name-only --diff-filter "D" $patch~1..$patch | grep -v .pj$`; do
+   for file in `git diff --name-only --no-renames --diff-filter "D" $patch~1..$patch | grep -v .pj$`; do
       #is file ignored?
       $SCRIPTSLOC/gitmks_ignore.sh "$file" .mksignore
       if [ "$?" == 0 ]; then
@@ -230,7 +230,7 @@ for patch in `git rev-list HEAD..temp_staged --reverse`; do
    done
 
    #drop projects
-   for file in `git diff --name-only --diff-filter "D" $patch~1..$patch | grep .pj$ | awk -F "/" '{print NF "|" $0}' | sort -n -r | awk -F "|" '{print $2}'`; do
+   for file in `git diff --name-only --no-renames --diff-filter "D" $patch~1..$patch | grep .pj$ | awk -F "/" '{print NF "|" $0}' | sort -n -r | awk -F "|" '{print $2}'`; do
       #is file ignored?
       $SCRIPTSLOC/gitmks_ignore.sh "$file" .mksignore
       if [ "$?" == 0 ]; then
@@ -245,7 +245,7 @@ for patch in `git rev-list HEAD..temp_staged --reverse`; do
    done
 
    # check in all of the files
-   for file in `git diff --name-only --diff-filter "M" $patch~1..$patch`; do
+   for file in `git diff --name-only --no-renames --diff-filter "M" $patch~1..$patch`; do
       #is file ignored?
       $SCRIPTSLOC/gitmks_ignore.sh "$file" .mksignore
       if [ "$?" == 0 ]; then
