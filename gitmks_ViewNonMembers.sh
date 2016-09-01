@@ -29,13 +29,18 @@ if [ ! -d $GITDIR/mks_remote/$LOCAL_PATH ]; then
    exit 128
 fi
 
-USER="`git config --get mks.user`"
+MKSUSER="`git config --get mks.user`"
+retval=$?
+if [ $retval != 0 ]; then
+   echo "mks.user is not set in git config" >&2
+   exit 255
+fi
 
 for line in `cat $GITDIR/mks_projects`; do
    file_name=`basename $GITDIR/mks_remote/$line`
    dir_name=`dirname $GITDIR/mks_remote/$line`
    cd $dir_name
-   si viewnonmembers --user $USER -S $file_name --exclude=dir:.git
+   si viewnonmembers --user $MKSUSER -S $file_name --exclude=dir:.git
    cd - > /dev/null
 done
 

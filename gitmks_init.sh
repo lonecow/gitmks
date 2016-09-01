@@ -23,10 +23,6 @@ else
    GIT_DIR=$2
 fi
 
-echo -e "\n      Please enter your mks user name:\n"
-
-read USERNAME
-
 cd $GIT_DIR
 GIT_DIR="`pwd`"
 
@@ -39,8 +35,6 @@ if [ $retval == 0 ]; then
 fi
 
 git init
-
-git config --add mks.user $USERNAME
 
 mkdir .git/mks_remote
 cd .git/mks_remote

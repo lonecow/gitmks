@@ -9,6 +9,13 @@ usage()
    echo "      add        [MKS project] <local path> initializes a git/MKS repository at the local location"
 }
 
+MKSUSER="`git config --get mks.user`"
+retval=$?
+if [ $retval != 0 ]; then
+   echo "mks.user is not set in git config" >&2
+   exit 255
+fi
+
 if [ "$1" == usage ];then
    usage
    exit 255
@@ -38,25 +45,8 @@ if [ ! -d $GITDIR/mks_remote/$LOCAL_PATH ]; then
    exit 128
 fi
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-echo -e "\n      Please enter your mks user name:\n"
-
-read USERNAME
-
 PROJECT=$2
-si viewproject --project $PROJECT --no --quiet --user $USERNAME &> /dev/null
+si viewproject --project $PROJECT --no --quiet --user $MKSUSER &> /dev/null
 retval=$?
 
 if [ $retval != 0 ]; then
@@ -77,15 +67,13 @@ fi
 
 git init
 
-git config --add mks.user $USERNAME
-
 mkdir .git/mks_remote
 cd .git/mks_remote
 
 git init
 git checkout -b MKS
 
-si createsandbox -P $PROJECT --yes --user $USERNAME
+si createsandbox -P $PROJECT --yes --user $MKSUSER
 git add -A
 git commit -m 'Initial Import from MKS'
 

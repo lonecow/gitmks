@@ -39,10 +39,15 @@ else
    DEVPATH=""
 fi
 
-USER="`git config --get mks.user`"
+MKSUSER="`git config --get mks.user`"
+retval=$?
+if [ $retval != 0 ]; then
+   echo "mks.user is not set in git config" >&2
+   exit 255
+fi
 
 PROJECT=$2
-si viewproject --project $PROJECT --no --quiet --user $USER &> /dev/null
+si viewproject --project $PROJECT --no --quiet --user $MKSUSER &> /dev/null
 retval=$?
 
 if [ $retval != 0 ]; then
@@ -62,9 +67,9 @@ cd $PROJECT_DIR
 echo `pwd`
 
 if [ -z "$DEVPATH" ]; then
-   si createsandbox -P $PROJECT --yes --user $USER
+   si createsandbox -P $PROJECT --yes --user $MKSUSER
 else
-   si createsandbox -P $PROJECT --yes --user $USER --devpath $DEVPATH
+   si createsandbox -P $PROJECT --yes --user $MKSUSER --devpath $DEVPATH
 fi
 
 

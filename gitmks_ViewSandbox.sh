@@ -29,9 +29,14 @@ if [ ! -d $GITDIR/mks_remote/$LOCAL_PATH ]; then
    exit 128
 fi
 
-USER="`git config --get mks.user`"
+MKSUSER="`git config --get mks.user`"
+retval=$?
+if [ $retval != 0 ]; then
+   echo "mks.user is not set in git config" >&2
+   exit 255
+fi
 
 for line in `cat $GITDIR/mks_projects`; do
-   si viewsandbox --user $USER -g -S $GITDIR/mks_remote/$line
+   si viewsandbox --user $MKSUSER -g -S $GITDIR/mks_remote/$line
 done
 

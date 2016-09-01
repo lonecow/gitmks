@@ -10,11 +10,16 @@ if [ $retval != 0 -o ! -d $GITDIR/mks_remote ]; then
    exit 128
 fi
 
-USER="`git config --get mks.user`"
+MKSUSER="`git config --get mks.user`"
+retval=$?
+if [ $retval != 0 ]; then
+   echo "mks.user is not set in git config" >&2
+   exit 255
+fi
 
 for line in `cat $GITDIR/mks_projects`; do
-   echo "si resync -S $GITDIR/mks_remote/${line} --yes --quiet --user $USER"
-   si resync -S $GITDIR/mks_remote/${line} --yes --quiet --user $USER
+   echo "si resync -S $GITDIR/mks_remote/${line} --yes --quiet --user $MKSUSER"
+   si resync -S $GITDIR/mks_remote/${line} --yes --quiet --user $MKSUSER
 done
 
 cd $GITDIR/mks_remote
