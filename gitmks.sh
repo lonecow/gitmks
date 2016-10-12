@@ -13,7 +13,8 @@ echo "
    $SCRIPTSLOC/gitmks_ViewNonMembers.sh usage
 echo "      update      updates the mks remote for the given repository
       fetch       updates the mks remote for the given repository
-      rebase      rebases the mks remote to the currently checked out branch"
+      rebase      rebases the mks remote to the currently checked out branch
+      import      imports the existing sandboxes into si"
 }
 
 SCRIPTSLOC="`dirname $0`"
@@ -44,6 +45,9 @@ elif [ "$1" == "viewsandbox" ]; then
    exit $?
 elif [ "$1" == "viewnonmembers" ]; then
    $SCRIPTSLOC/gitmks_ViewNonMembers.sh $@
+   exit $?
+elif [ "$1" == "import" ]; then
+   $SCRIPTSLOC/gitmks_import.sh $@
    exit $?
 else
    usage $@
