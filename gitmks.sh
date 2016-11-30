@@ -11,10 +11,11 @@ echo "
    $SCRIPTSLOC/gitmks_addSandbox.sh usage
    $SCRIPTSLOC/gitmks_ViewSandbox.sh usage
    $SCRIPTSLOC/gitmks_ViewNonMembers.sh usage
-echo "      update      updates the mks remote for the given repository
-      fetch       updates the mks remote for the given repository
-      rebase      rebases the mks remote to the currently checked out branch
-      import      imports the existing sandboxes into si"
+echo "      update         updates the mks remote for the given repository
+      fetch          updates the mks remote for the given repository
+      rebase         rebases the mks remote to the currently checked out branch
+      import         imports the existing sandboxes into si
+      CreateEmptyCP  imports the existing sandboxes into si"
 }
 
 SCRIPTSLOC="`dirname $0`"
@@ -48,6 +49,9 @@ elif [ "$1" == "viewnonmembers" ]; then
    exit $?
 elif [ "$1" == "import" ]; then
    $SCRIPTSLOC/gitmks_import.sh $@
+   exit $?
+elif [ "$1" == "CreateEmptyCP" ]; then
+   $SCRIPTSLOC/gitmks_CreateEmptyCP.sh $@
    exit $?
 else
    usage $@
