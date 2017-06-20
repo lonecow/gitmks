@@ -29,7 +29,7 @@ PORT=`echo $HOSTNAME | awk -F ":" '{print $2}'`
 
 for line in `cat $GITDIR/mks_projects`; do
    echo "si importsandbox --hostname $SERVER --port $PORT $GITDIR/mks_remote/${line}"
-   si importsandbox --hostname $SERVER --port $PORT $GITDIR/mks_remote/${line}
+   si importsandbox --hostname $SERVER --port $PORT --user $MKSUSER $GITDIR/mks_remote/${line}
 done
 
 cd $CURRENTDIR
