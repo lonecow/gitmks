@@ -43,6 +43,9 @@ if [ $retval != 0 ]; then
    exit 255
 fi
 
+
+SCRIPTSLOC="`dirname $0`"
+
 FOUND="FALSE"
 while [ "$FOUND" == "FALSE" ]; do
    echo "Please Enter your windows password"
@@ -50,6 +53,15 @@ while [ "$FOUND" == "FALSE" ]; do
    if [ -n "$PASSWORD" ]; then
       FOUND="TRUE"
    fi
+
+   if [ "$FOUND" != "FALSE" ]; then
+      python.exe $SCRIPTSLOC/CheckUsername.py $JIRAHOST $MKSUSER $PASSWORD $ISSUE
+      retval=$?
+      if [ "$retval" != "0" ]; then
+         FOUND="FALSE"
+      fi
+   fi
+
    if [ "$FOUND" == "FALSE" ]; then
       echo "[$PASSWORD] is an invalid entry try again. or hit ctrl+c to cancel"
    fi
@@ -57,8 +69,6 @@ done
 
 # set $IFS to end-of-line
 IFS=`echo -en "\n\b"`
-
-SCRIPTSLOC="`dirname $0`"
 
 ISSUE=""
 
@@ -166,7 +176,7 @@ for patch in `git rev-list HEAD..temp_staged --reverse`; do
    COMMITMESSAGE="`git log --pretty="format:%B" $patch~1..$patch`"
    SUMMARY="`echo $COMMITMESSAGE | cut -c1-250`"
 
-   PACKAGE=`python.exe $SCRIPTSLOC/CreateChangePackage.py --summary "$SUMMARY" --description "$COMMITMESSAGE" --ptc_host $PTCHOST $JIRAHOST $USERNAME $PASSWORD $ISSUE`
+   PACKAGE=`python.exe $SCRIPTSLOC/CreateChangePackage.py --summary "$SUMMARY" --description "$COMMITMESSAGE" --ptc_host $PTCHOST $JIRAHOST $MKSUSER $PASSWORD $ISSUE`
    retval=$?
    if [ $retval != 0 ]; then
       echo "Could not create a change package for issue [$ISSUE]" >&2
