@@ -186,6 +186,7 @@ for patch in `git rev-list HEAD..temp_staged --reverse`; do
    fi
 
    # lock all of the files
+   FILES_TO_LOCK=
    for file in `git diff --name-only --no-renames --diff-filter "M" $patch~1..$patch`; do
       #is file ignored?
       $SCRIPTSLOC/gitmks_ignore.sh "$file" .mksignore
@@ -194,16 +195,19 @@ for patch in `git rev-list HEAD..temp_staged --reverse`; do
          si memberinfo "$file" | grep "Locked By:" | grep ${MKSUSER}
          locked_by_me=$?
          if [ -z "$lockinfo" -a "$locked_by_me" != "0" ]; then
-            si lock --no --cpid $PACKAGE "$file"
-            retval=$?
-            if [ $retval != 0 ]; then
-               echo "Could not Lock all files. Canceling dcommit" >&2
-               CleanupFailure
-               exit 255
-            fi
+            FILES_TO_LOCK="$FILES_TO_LOCK \"$file\""
          fi
       fi
    done
+   if [ -n "$FILES_TO_LOCK" ]; then
+      echo $FILES_TO_LOCK | xargs si lock --no --cpid $PACKAGE
+      retval=$?
+      if [ $retval != 0 ]; then
+         echo "Could not Lock all files. Canceling dcommit" >&2
+         CleanupFailure
+         exit 255
+      fi
+   fi
 
    #we are going to add files that were newly added
    for file in `git diff --name-only --no-renames --diff-filter "A" $patch~1..$patch`; do
@@ -225,49 +229,64 @@ for patch in `git rev-list HEAD..temp_staged --reverse`; do
 
    #we are going to drop files that were removed
    #drop members
+   FILES_TO_DROP=
    for file in `git diff --name-only --no-renames --diff-filter "D" $patch~1..$patch | grep -v .pj$`; do
       #is file ignored?
       $SCRIPTSLOC/gitmks_ignore.sh "$file" .mksignore
       if [ "$?" == 0 ]; then
-         si drop --noconfirm --nocloseCP --cpid $PACKAGE "$file"
-         retval=$?
-         if [ $retval != 0 ]; then
-            echo "Could not drop all files. Canceling dcommit" >&2
-            CleanupFailure
-            exit 255
-         fi
+         FILES_TO_DROP="$FILES_TO_DROP \"$file\""
       fi
    done
 
+   if [ -n "$FILES_TO_DROP" ]; then
+      echo $FILES_TO_DROP | xargs si drop --noconfirm --nocloseCP --cpid $PACKAGE
+      retval=$?
+      if [ $retval != 0 ]; then
+         echo "Could not drop all files. Canceling dcommit" >&2
+         CleanupFailure
+         exit 255
+      fi
+   fi
+
    #drop projects
+   FILES_TO_DROP=
    for file in `git diff --name-only --no-renames --diff-filter "D" $patch~1..$patch | grep .pj$ | awk -F "/" '{print NF "|" $0}' | sort -n -r | awk -F "|" '{print $2}'`; do
       #is file ignored?
       $SCRIPTSLOC/gitmks_ignore.sh "$file" .mksignore
       if [ "$?" == 0 ]; then
-         si drop --noconfirm --nocloseCP --cpid $PACKAGE "$file"
-         retval=$?
-         if [ $retval != 0 ]; then
-            echo "Could not drop all files. Canceling dcommit" >&2
-            CleanupFailure
-            exit 255
-         fi
+         FILES_TO_DROP="$FILES_TO_DROP \"$file\""
       fi
    done
 
+   if [ -n "$FILES_TO_DROP" ]; then
+      echo $FILES_TO_DROP | xargs si drop --noconfirm --nocloseCP --cpid $PACKAGE
+      retval=$?
+      if [ $retval != 0 ]; then
+         echo "Could not drop all files. Canceling dcommit" >&2
+         CleanupFailure
+         exit 255
+      fi
+   fi
+
    # check in all of the files
+   FILES_TO_CHECK_IN=
    for file in `git diff --name-only --no-renames --diff-filter "M" $patch~1..$patch`; do
       #is file ignored?
       $SCRIPTSLOC/gitmks_ignore.sh "$file" .mksignore
       if [ "$?" == 0 ]; then
-         si ci --unlock --nounexpand --nocloseCP --confirmbranchVariant -Y --cpid $PACKAGE --description "$COMMITMESSAGE" --update "$file"
-         retval=$?
-         if [ $retval != 0 ]; then
-            echo "Could not check in all files. Canceling dcommit" >&2
-            CleanupFailure
-            exit 255
-         fi
+         FILES_TO_CHECK_IN="$FILES_TO_CHECK_IN \"$file\""
       fi
    done
+
+   if [ -n "$FILES_TO_CHECK_IN" ]; then
+      echo $FILES_TO_CHECK_IN | xargs si ci --unlock --nounexpand --nocloseCP --confirmbranchVariant -Y --cpid $PACKAGE --description "$COMMITMESSAGE" --update
+      retval=$?
+      if [ $retval != 0 ]; then
+         echo "Could not check in all files. Canceling dcommit" >&2
+         CleanupFailure
+         exit 255
+      fi
+   fi
 
    si closecp $PACKAGE
 
